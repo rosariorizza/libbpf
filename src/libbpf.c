@@ -7478,6 +7478,14 @@ static int bpf_object_load_prog(struct bpf_object *obj, struct bpf_program *prog
 	__u32 log_level = prog->log_level;
 	int ret, err;
 
+	const char* external_log_level = getenv("EXTERNAL_LOG_LEVEL");
+	if (external_log_level != NULL) {
+		printf("EXTERNAL_LOG_LEVEL: %s\n", external_log_level);
+		log_level = atoi(external_log_level);
+	}else {
+		printf("EXTERNAL_LOG_LEVEL not defined\n");
+	}
+
 	/* Be more helpful by rejecting programs that can't be validated early
 	 * with more meaningful and actionable error message.
 	 */
@@ -7585,6 +7593,10 @@ retry_load:
 
 	ret = bpf_prog_load(prog->type, prog_name, license, insns, insns_cnt, &load_attr);
 	if (ret >= 0) {
+		char* external_print_from_load = getenv("EXTERNAL_PRINT_FROM_LOAD");
+		if(external_print_from_load != NULL) {
+			printf("OUTPUT\n%s\n", log_buf);
+		}	
 		if (log_level && own_log_buf) {
 			pr_debug("prog '%s': -- BEGIN PROG LOAD LOG --\n%s-- END PROG LOAD LOG --\n",
 				 prog->name, log_buf);
